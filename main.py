@@ -2,11 +2,15 @@ from PIL import Image
 import numpy as np
 
 
-grid_size = 2
+grid_size = 3
 
 im = Image.open('tom.jpg', 'r')
 width, height = im.size
 pixel_values = list(im.getdata())
+
+image_files = reversed(['0.png', '2.png', '3.png', '4.png', '5.png'])
+#image_files = reversed(['1.png', '2.png', '3.png', '4.png', '5.png', '6.png'])
+images = [Image.open('fingers/' + name) for name in image_files]
 
 
 new_pic = []
@@ -29,12 +33,10 @@ new_pic = np.array(new_pic, dtype=np.uint8)
 
 min = np.amin(new_pic)
 max = np.amax(new_pic)
-range = (max - min) / 5 + 1
+range = (max - min) / len(images) + 1
 
 new_pic = (new_pic - min) // range
 
-image_files = reversed(['0.png', '2.png', '3.png', '4.png', '5.png'])
-images = [Image.open(name) for name in image_files]
 
 i_width, i_height = images[0].size
 n_height, n_width = new_pic.shape
@@ -53,6 +55,7 @@ for row in new_pic:
         x_offset += i_width
     y_offset += i_height
 
+#new_im.save('result.jpg')
 new_im.show()
 
 
