@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+<div id="app">
+<el-col :span="4">left</el-col>
+<el-col :span="16">
+    <el-container>
+        <el-header height="100px">
+            <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+                    <el-menu-item index="1">Processing Center</el-menu-item>
+                    <el-submenu index="2">
+                        <template slot="title">Workspace</template>
+                        <el-menu-item index="2-1">item one</el-menu-item>
+                    </el-submenu>
+                    <el-menu-item index="3">Info</el-menu-item>
+                </el-menu>
+        </el-header>
+        <el-main>
+            <!--
+            <el-upload
+                    class="upload-demo"
+                    ref="upload"
+                    :action="upload_url"
+                    :auto-upload="false"
+                    :on-success="loadConverted">
+                <el-button slot="trigger" size="small" type="primary">select file</el-button>
+                <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">upload to server</el-button>
+                <div class="el-upload__tip" slot="tip">jpg/png files with a size less than 500kb</div>
+            </el-upload>
+            -->
+            <br/>
+            bla
+            <el-upload
+                    class="avatar-uploader"
+                    ref="upload"
+                    :action="upload_url"
+                    :show-file-list="false"
+                    :on-success="handleUploadSuccess">
+                <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            </el-upload>
+            <el-button style="margin-left: 10px;" size="small" type="success" @click="loadConverted">FINGER IT!</el-button>
+            <br/>
+            <el-image
+                    style="width: 200px; height: 200px"
+                    :src='result_image'
+                    fit='scale-down'>
+            </el-image>
+        </el-main>
+    </el-container>
+</el-col>
+<el-col :span="4">right</el-col>
+</div>
+</body>
+
+<style>
+    .el-header, .el-footer {
+    background-color: #B3C0D1;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+  }
+
+  .el-main {
+    background-color: powderblue;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+  }
+
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
+
+</style>
+
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        activeIndex: '1',
+        activeIndex2: '1',
+        result_image: '',
+        upload_url: "%%url_for('upload_file')%%",
+        imageUrl: '',
+        file_name: ''
+    },
+    methods: {
+        handleSelect(key, keyPath) {
+          console.log(key, keyPath);
+        },
+        submitUpload() {
+            this.$refs.upload.submit();
+        },
+        handleUploadSuccess(response, file, fileList) {
+            this.imageUrl = URL.createObjectURL(file.raw);
+            this.file_name = response;
+            console.log(this.file_name);
+        },
+        loadConverted() {
+            self = this;
+            var url = "%%url_for('convert')%%" + "?file=" + this.file_name;
+            console.log(url);
+            this.$http.get(url).then(response => {
+                self.result_image = response.body;
+                console.log(self.result_image);
+            });  
+        }
+        
+    }
+})
+</script>
+
+</html>
