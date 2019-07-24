@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import mosaik
 import os
 import uuid
+import PIL
 
 
 class CustomFlask(Flask):
@@ -14,7 +15,7 @@ class CustomFlask(Flask):
 
 app = CustomFlask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 0.5 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
@@ -29,7 +30,6 @@ def root():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     # check if the post request has the file part
-    print(request.files)
     if 'file' not in request.files:
         abort(404)
 
@@ -40,13 +40,20 @@ def upload_file():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filename = str(uuid.uuid4()) + '.' + filename.rsplit('.', 1)[1].lower()
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        image = PIL.Image.open(file, 'r')
+        image.thumbnail((500, 500), PIL.Image.ANTIALIAS)
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
         return make_response(filename, 200)
 
 @app.route('/convert', methods=['GET'])
 def convert():
     file_name = request.args.get('file')
-    new_image_path = mosaik.convert(os.path.join(app.config['UPLOAD_FOLDER'], file_name), grid_size=(4, 3))
+    grid = int(request.args.get('grid'))
+    grid = tuple( grid * i for i in (4, 3))
+
+    new_image_path = mosaik.convert(os.path.join(app.config['UPLOAD_FOLDER'], file_name), grid_size=grid)
     return make_response(new_image_path, 200)
 
 @app.route('/uploads/<filename>')

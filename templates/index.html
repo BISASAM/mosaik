@@ -12,6 +12,7 @@
 <el-col :span="16">
     <el-container>
         <el-header height="100px">
+            <!--
             <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
                     <el-menu-item index="1">Processing Center</el-menu-item>
                     <el-submenu index="2">
@@ -19,39 +20,45 @@
                         <el-menu-item index="2-1">item one</el-menu-item>
                     </el-submenu>
                     <el-menu-item index="3">Info</el-menu-item>
-                </el-menu>
-        </el-header>
-        <el-main>
-            <!--
-            <el-upload
-                    class="upload-demo"
-                    ref="upload"
-                    :action="upload_url"
-                    :auto-upload="false"
-                    :on-success="loadConverted">
-                <el-button slot="trigger" size="small" type="primary">select file</el-button>
-                <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">upload to server</el-button>
-                <div class="el-upload__tip" slot="tip">jpg/png files with a size less than 500kb</div>
-            </el-upload>
+            </el-menu>
             -->
-            <br/>
-            bla
-            <el-upload
-                    class="avatar-uploader"
-                    ref="upload"
-                    :action="upload_url"
-                    :show-file-list="false"
-                    :on-success="handleUploadSuccess">
-                <img v-if="imageUrl" :src="imageUrl" class="avatar">
-                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-            </el-upload>
-            <el-button style="margin-left: 10px;" size="small" type="success" @click="loadConverted">FINGER IT!</el-button>
-            <br/>
-            <el-image
-                    style="width: 200px; height: 200px"
-                    :src='result_image'
-                    fit='scale-down'>
-            </el-image>
+            <img src="%%url_for('static', filename='rescources/banner.jpg')%%" height="100%" style="object-fit: fill;">
+        </el-header>
+
+        <el-main>
+            <el-row :gutter="20">
+            <el-col :span="8">
+                <div id="uploader">
+                <el-upload
+                        class="avatar-uploader"
+                        ref="upload"
+                        :action="upload_url"
+                        :show-file-list="false"
+                        :on-success="handleUploadSuccess">
+                    <el-image v-if="imageUrl" :src="imageUrl" class="avatar" fit='contain'></el-image>
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+                    <div v-if="imageUrl">
+                    <span>Grid Size</span>
+                    <el-slider
+                        v-model="gridsize"
+                        :min=1
+                        :max=5
+                        show-stops>
+                    </el-slider>
+                    </div>
+                <el-button style="margin-left: 10px;" size="small" type="success" @click="loadConverted" v-if="imageUrl">DO IT, DO IT !</el-button>
+                </div>
+            </el-col>
+            <el-col :span="16">
+                <div id="result"  v-if="result_image">
+                <el-image
+                        :src='result_image'
+                        fit='contain'>
+                </el-image>
+                </div>
+            </el-col>
+            </el-row>
         </el-main>
     </el-container>
 </el-col>
@@ -60,18 +67,24 @@
 </body>
 
 <style>
-    .el-header, .el-footer {
-    background-color: #B3C0D1;
-    color: #333;
-    text-align: center;
-    line-height: 60px;
-  }
+    .el-button {
+        object-fit: contain;
+    }
 
-  .el-main {
-    background-color: powderblue;
+    .el-header, .el-footer {
+    background-color: white;
     color: #333;
     text-align: center;
     line-height: 60px;
+    padding: 0px;
+    margin-top: 20px;
+  }
+  .el-main {
+    background-color: white;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+    margin-top: 40px;
   }
 
   .avatar-uploader .el-upload {
@@ -93,9 +106,13 @@
     text-align: center;
   }
   .avatar {
-    width: 178px;
-    height: 178px;
     display: block;
+  }
+
+  #uploader, #result {
+    border: 1px solid;
+    border-radius: 10px;
+    padding: 20px;
   }
 
 </style>
@@ -112,6 +129,7 @@ new Vue({
     data: {
         activeIndex: '1',
         activeIndex2: '1',
+        gridsize: 0,
         result_image: '',
         upload_url: "%%url_for('upload_file')%%",
         imageUrl: '',
@@ -127,16 +145,16 @@ new Vue({
         handleUploadSuccess(response, file, fileList) {
             this.imageUrl = URL.createObjectURL(file.raw);
             this.file_name = response;
-            console.log(this.file_name);
         },
         loadConverted() {
             self = this;
-            var url = "%%url_for('convert')%%" + "?file=" + this.file_name;
-            console.log(url);
-            this.$http.get(url).then(response => {
+            if (this.file_name.length) {
+                let url = "%%url_for('convert')%%";
+                let params = {params: {file: this.file_name, grid: this.gridsize}}
+                this.$http.get(url, params).then(response => {
                 self.result_image = response.body;
-                console.log(self.result_image);
-            });  
+                })
+            };  
         }
         
     }

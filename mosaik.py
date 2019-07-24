@@ -66,7 +66,9 @@ def convert(file, grid_size=(4, 3)):
             x_offset += i_width
         y_offset += i_height
 
+    new_im.thumbnail((2160, 3840), Image.ANTIALIAS)
     filename = f'static/converted/{str(uuid.uuid4())}.jpg'
+    
     new_im.save(realpath(filename))
     # new_im.show()
     return filename
