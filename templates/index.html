@@ -144,15 +144,15 @@ new Vue({
         },
         handleUploadSuccess(response, file, fileList) {
             this.imageUrl = URL.createObjectURL(file.raw);
-            this.file_name = response;
+            this.file_name = 'da';
         },
         loadConverted() {
             self = this;
             if (this.file_name.length) {
                 let url = "%%url_for('convert')%%";
-                let params = {params: {file: this.file_name, grid: this.gridsize}}
+                let params = {params: {grid: this.gridsize}}
                 this.$http.get(url, params).then(response => {
-                self.result_image = response.body;
+                console.log('bla');
                 })
             };  
         }

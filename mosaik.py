@@ -35,7 +35,7 @@ def convert(file, grid_size=(4, 3)):
     :return:
     '''
 
-    image = np.array(Image.open(file, 'r'))
+    image = np.array(file)
 
     tile_files = reversed(['0.png', '1.png', '2.png', '3.png', '4.png', '5.png'])
     #image_files = reversed(['1.png', '2.png', '3.png', '4.png', '5.png', '6.png'])
@@ -69,9 +69,9 @@ def convert(file, grid_size=(4, 3)):
     new_im.thumbnail((2160, 3840), Image.ANTIALIAS)
     filename = f'static/converted/{str(uuid.uuid4())}.jpg'
     
-    new_im.save(realpath(filename))
+    # new_im.save(realpath(filename))
     # new_im.show()
-    return filename
+    return new_im
 
 
 if __name__ == '__main__':
