@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 from os.path import realpath
+import os
 import uuid
 
 
@@ -67,6 +68,8 @@ def convert(file, grid_size=(4, 3)):
         y_offset += i_height
 
     new_im.thumbnail((2160, 3840), Image.ANTIALIAS)
+    if not os.path.exists('static/converted'):
+            os.makedirs('static/converted')
     filename = f'static/converted/{str(uuid.uuid4())}.jpg'
     
     new_im.save(realpath(filename))
