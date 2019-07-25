@@ -15,7 +15,7 @@ class CustomFlask(Flask):
 
 app = CustomFlask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 0.5 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
@@ -43,7 +43,7 @@ def upload_file():
 
         image = PIL.Image.open(file, 'r')
         image.thumbnail((500, 500), PIL.Image.ANTIALIAS)
-        if not os.path.exists('/tmp/newdir'):
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
             os.makedirs(app.config['UPLOAD_FOLDER'])
         image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 

@@ -36,7 +36,9 @@ def convert(file, grid_size=(4, 3)):
     :return:
     '''
 
-    image = np.array(Image.open(file, 'r'))
+    image = Image.open(file, 'r')
+    image.thumbnail((360, 640), Image.ANTIALIAS)
+    image = np.array(image)
 
     tile_files = reversed(['0.png', '1.png', '2.png', '3.png', '4.png', '5.png'])
     #image_files = reversed(['1.png', '2.png', '3.png', '4.png', '5.png', '6.png'])
