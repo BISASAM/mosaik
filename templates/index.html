@@ -34,19 +34,31 @@
                         ref="upload"
                         :action="upload_url"
                         :show-file-list="false"
-                        :on-success="handleUploadSuccess">
+                        :on-success="handleUploadSuccess"
+                        :on-error="handleUploadError">
                     <el-image v-if="imageUrl" :src="imageUrl" class="avatar" fit='contain'></el-image>
                     <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                 </el-upload>
-                    <div v-if="imageUrl">
-                    <span>Grid Size</span>
-                    <el-slider
-                        v-model="gridsize"
-                        :min=1
-                        :max=5
-                        show-stops>
-                    </el-slider>
-                    </div>
+                <div v-if="imageUrl">
+                <span>Grid Size</span>
+                <el-slider
+                    v-model="gridsize"
+                    :min=1
+                    :max=5
+                    show-stops>
+                </el-slider>
+                </div>
+
+                <el-dialog
+                    title="File Error"
+                    :visible.sync="fileToLargeDialog"
+                    width="250px">
+                    <span>File must be <b>< 500 kb !</b></span>
+                    <span slot="footer" class="dialog-footer">
+                    <el-button @click="fileToLargeDialog = false">Close</el-button>
+                    </span>
+                </el-dialog>
+
                 <el-button style="margin-left: 10px;" size="small" type="success" @click="loadConverted" v-if="imageUrl">DO IT, DO IT !</el-button>
                 </div>
             </el-col>
@@ -67,6 +79,10 @@
 </body>
 
 <style>
+    html * {
+        font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif !important;
+    }
+
     .el-button {
         object-fit: contain;
     }
@@ -133,18 +149,19 @@ new Vue({
         result_image: '',
         upload_url: "%%url_for('upload_file')%%",
         imageUrl: '',
-        file_name: ''
+        file_name: '',
+        fileToLargeDialog: false
     },
     methods: {
-        handleSelect(key, keyPath) {
-          console.log(key, keyPath);
-        },
         submitUpload() {
             this.$refs.upload.submit();
         },
         handleUploadSuccess(response, file, fileList) {
             this.imageUrl = URL.createObjectURL(file.raw);
             this.file_name = response;
+        },
+        handleUploadError(response, file, fileList) {
+            this.fileToLargeDialog = true;
         },
         loadConverted() {
             self = this;
