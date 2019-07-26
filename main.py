@@ -1,59 +1,67 @@
-from PIL import Image
-import numpy as np
+from flask import Flask, render_template, request, make_response, redirect, url_for, flash, send_from_directory, abort
+from werkzeug.utils import secure_filename
+import mosaik
+import os
+import uuid
+import PIL
 
 
-grid_size = 2
+class CustomFlask(Flask):
+    jinja_options = Flask.jinja_options.copy()
+    jinja_options.update(dict(
+        variable_start_string='%%',  # Default is '{{', I'm changing this because Vue.js uses '{{' / '}}'
+        variable_end_string='%%',
+    ))
 
-im = Image.open('tom.jpg', 'r')
-width, height = im.size
-pixel_values = list(im.getdata())
-
-
-new_pic = []
-for y in range(0, height, grid_size):
-    row = []
-    for x in range(0, width, grid_size):
-        tile = []
-        for i in range(y, y+grid_size):
-            tile.extend(pixel_values[(i*width+x):(i*width+x+grid_size)])
-
-        tile = np.array(tile)
-        tile = np.mean(tile, axis=0)
-        R, G, B = tile
-        Y = (2*R + B + 3*G) / 6
-        row.append(Y)
-
-    new_pic.append(row)
-
-new_pic = np.array(new_pic, dtype=np.uint8)
-
-min = np.amin(new_pic)
-max = np.amax(new_pic)
-range = (max - min) / 5 + 1
-
-new_pic = (new_pic - min) // range
-
-image_files = reversed(['0.png', '2.png', '3.png', '4.png', '5.png'])
-images = [Image.open(name) for name in image_files]
-
-i_width, i_height = images[0].size
-n_height, n_width = new_pic.shape
+app = CustomFlask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 0.5 * 1024 * 1024
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
-total_width = i_width * n_width
-max_height = i_height * n_height
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-new_im = Image.new('RGB', (total_width, max_height))
+@app.route('/')
+def root():
+    return render_template('index.html')
 
-y_offset = 0
-for row in new_pic:
-    x_offset = 0
-    for entry in row:
-        new_im.paste(images[int(entry)], (x_offset, y_offset))
-        x_offset += i_width
-    y_offset += i_height
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        abort(404)
 
-new_im.show()
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('root'))
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filename = str(uuid.uuid4()) + '.' + filename.rsplit('.', 1)[1].lower()
+
+        image = PIL.Image.open(file, 'r')
+        image.thumbnail((500, 500), PIL.Image.ANTIALIAS)
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        return make_response(filename, 200)
+
+@app.route('/convert', methods=['GET'])
+def convert():
+    file_name = request.args.get('file')
+    grid = int(request.args.get('grid'))
+    grid = tuple( grid * i for i in (4, 3))
+
+    new_image_path = mosaik.convert(os.path.join(app.config['UPLOAD_FOLDER'], file_name), grid_size=grid)
+    return make_response(new_image_path, 200)
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory('converted', 'result.jpg' )
 
 
-
+if __name__ == '__main__':
+    app.run(port=3000, debug=True)

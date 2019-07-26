@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+<div id="app">
+<el-col :span="4">left</el-col>
+<el-col :span="16">
+    <el-container>
+        <el-header height="100px">
+            <!--
+            <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+                    <el-menu-item index="1">Processing Center</el-menu-item>
+                    <el-submenu index="2">
+                        <template slot="title">Workspace</template>
+                        <el-menu-item index="2-1">item one</el-menu-item>
+                    </el-submenu>
+                    <el-menu-item index="3">Info</el-menu-item>
+            </el-menu>
+            -->
+            <img src="%%url_for('static', filename='rescources/banner.jpg')%%" height="100%" style="object-fit: fill;">
+        </el-header>
+
+        <el-main>
+            <el-row :gutter="20">
+            <el-col :span="8">
+                <div id="uploader">
+                <el-upload
+                        class="avatar-uploader"
+                        ref="upload"
+                        :action="upload_url"
+                        :show-file-list="false"
+                        :on-success="handleUploadSuccess"
+                        :on-error="handleUploadError"
+                        :before-upload="validateFileSize">
+                    <el-image v-if="imageUrl" :src="imageUrl" class="avatar" fit='contain'></el-image>
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+                <span  v-if="!imageUrl" style="font-size: 12px">max file size: 500 kb</span>
+                
+                <div v-if="imageUrl">
+                <span>Grid Size</span>
+                <el-slider
+                    v-model="gridsize"
+                    :min=1
+                    :max=5
+                    show-stops>
+                </el-slider>
+                </div>
+
+                <el-dialog
+                    title="File Error"
+                    :visible.sync="fileTooLargeDialog"
+                    width="250px">
+                    <span>File must be <b>< 500 kb !</b></span>
+                    <span slot="footer" class="dialog-footer">
+                    <el-button @click="fileTooLargeDialog = false">Close</el-button>
+                    </span>
+                </el-dialog>
+
+                <el-button style="margin-left: 10px;" size="small" type="success" @click="loadConverted" v-if="imageUrl">DO IT, DO IT !</el-button>
+                </div>
+            </el-col>
+            <el-col :span="16">
+                <div id="result"  v-if="result_image">
+                <el-image
+                        :src='result_image'
+                        fit='contain'>
+                </el-image>
+                </div>
+            </el-col>
+            </el-row>
+        </el-main>
+    </el-container>
+</el-col>
+<el-col :span="4">right</el-col>
+</div>
+</body>
+
+<style>
+    html * {
+        font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif !important;
+    }
+
+    .el-button {
+        object-fit: contain;
+    }
+
+    .el-header, .el-footer {
+    background-color: white;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+    padding: 0px;
+    margin-top: 20px;
+  }
+  .el-main {
+    background-color: white;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+    margin-top: 40px;
+  }
+
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    display: block;
+  }
+
+  #uploader, #result {
+    border: 1px solid;
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+</style>
+
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        activeIndex: '1',
+        activeIndex2: '1',
+        gridsize: 2,
+        result_image: '',
+        upload_url: "%%url_for('upload_file')%%",
+        imageUrl: '',
+        file_name: '',
+        fileTooLargeDialog: false
+    },
+    methods: {
+        handleUploadSuccess(response, file, fileList) {
+            this.imageUrl = URL.createObjectURL(file.raw);
+            this.file_name = response;
+        },
+        handleUploadError(response, file, fileList) {
+            alert("An error occured during Upload");
+        },
+        validateFileSize(file) {
+            let FileSize = file.size / 1024; // in MB
+            if (FileSize > 500) {
+                this.fileTooLargeDialog = true;
+                return false;
+            } else {
+                return true;
+            }
+        },
+        loadConverted() {
+            self = this;
+            if (this.file_name.length) {
+                let url = "%%url_for('convert')%%";
+                let params = {params: {file: this.file_name, grid: this.gridsize}}
+                this.$http.get(url, params).then(response => {
+                self.result_image = response.body;
+                })
+            };  
+        }
+        
+    }
+})
+</script>
+
+</html>
