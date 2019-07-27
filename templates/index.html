@@ -12,22 +12,14 @@
 <el-col :span="16">
     <el-container>
         <el-header height="100px">
-            <!--
-            <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-                    <el-menu-item index="1">Processing Center</el-menu-item>
-                    <el-submenu index="2">
-                        <template slot="title">Workspace</template>
-                        <el-menu-item index="2-1">item one</el-menu-item>
-                    </el-submenu>
-                    <el-menu-item index="3">Info</el-menu-item>
-            </el-menu>
-            -->
             <img src="%%url_for('static', filename='rescources/banner.jpg')%%" height="100%" style="object-fit: fill;">
         </el-header>
 
         <el-main>
             <el-row :gutter="20">
             <el-col :span="8">
+                <div id="uploader-side">
+
                 <div id="uploader">
                 <el-upload
                         class="avatar-uploader"
@@ -37,12 +29,13 @@
                         :on-success="handleUploadSuccess"
                         :on-error="handleUploadError"
                         :before-upload="validateFileSize">
-                    <el-image v-if="imageUrl" :src="imageUrl" class="avatar" fit='contain'></el-image>
+                    <el-image v-if="uploadedImage" :src="uploadedImage" class="avatar" fit='contain'></el-image>
                     <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                 </el-upload>
-                <span  v-if="!imageUrl" style="font-size: 12px">max file size: 500 kb</span>
+                <span  v-if="!uploadedImage" style="font-size: 12px;">JPG, PNG < 500 KB</span>
+                </div>
                 
-                <div v-if="imageUrl">
+                <div id="settings" v-if="uploadedImage">
                 <span>Grid Size</span>
                 <el-slider
                     v-model="gridsize"
@@ -50,6 +43,13 @@
                     :max=5
                     show-stops>
                 </el-slider>
+                </div>
+                
+                <div id="execute" v-if="uploadedImage">
+                <el-button size="small" type="success" @click="loadConverted">DO IT, DO IT !</el-button>
+                <p style="font-size: 12px; line-height: 0px; margin: 0px">Be patient, server is slow</p>
+                </div>
+
                 </div>
 
                 <el-dialog
@@ -62,11 +62,9 @@
                     </span>
                 </el-dialog>
 
-                <el-button style="margin-left: 10px;" size="small" type="success" @click="loadConverted" v-if="imageUrl">DO IT, DO IT !</el-button>
-                </div>
             </el-col>
             <el-col :span="16">
-                <div id="result"  v-if="result_image">
+                <div id="result-side"  v-if="result_image">
                 <el-image
                         :src='result_image'
                         fit='contain'>
@@ -85,11 +83,9 @@
     html * {
         font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif !important;
     }
-
     .el-button {
         object-fit: contain;
     }
-
     .el-header, .el-footer {
     background-color: white;
     color: #333;
@@ -105,7 +101,6 @@
     line-height: 60px;
     margin-top: 40px;
   }
-
   .avatar-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     border-radius: 6px;
@@ -127,11 +122,21 @@
   .avatar {
     display: block;
   }
-
-  #uploader, #result {
+  #uploader-side, #result-side {
     border: 1px solid;
     border-radius: 10px;
     padding: 20px;
+  }
+  #uploader {
+    line-height: 15px;
+  }
+  #settings {
+    margin-top: 50px;
+    line-height: 15px;
+    margin-bottom: 40px;
+  }
+  #execute {
+    margin-bottom: 10px;
   }
 
 </style>
@@ -146,18 +151,16 @@
 new Vue({
     el: '#app',
     data: {
-        activeIndex: '1',
-        activeIndex2: '1',
         gridsize: 2,
-        result_image: '',
         upload_url: "%%url_for('upload_file')%%",
-        imageUrl: '',
+        uploadedImage: '',
+        result_image: '',
         file_name: '',
         fileTooLargeDialog: false
     },
     methods: {
         handleUploadSuccess(response, file, fileList) {
-            this.imageUrl = URL.createObjectURL(file.raw);
+            this.uploadedImage = URL.createObjectURL(file.raw);
             this.file_name = response;
         },
         handleUploadError(response, file, fileList) {
