@@ -12,9 +12,8 @@
 <el-col :span="16">
     <el-container>
         <el-header height="100px">
-            <img src="%%url_for('static', filename='rescources/banner.jpg')%%" height="100%" style="object-fit: fill;">
+            <el-image id=banner src="%%url_for('static', filename='rescources/banner.jpg')%%" fit="contain">
         </el-header>
-
         <el-main>
             <el-row :gutter="20">
             <el-col :span="8">
@@ -93,6 +92,9 @@
     line-height: 60px;
     padding: 0px;
     margin-top: 20px;
+  }
+  #banner {
+      height: 100px;
   }
   .el-main {
     background-color: white;
